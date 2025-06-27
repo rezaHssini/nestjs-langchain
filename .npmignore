@@ -1,0 +1,54 @@
+# Source files
+src/
+*.ts
+!*.d.ts
+
+# Development files
+.eslintrc.js
+.prettierrc
+tsconfig.json
+tsconfig.build.json
+nest-cli.json
+
+# Test files
+test/
+coverage/
+*.spec.ts
+*.test.ts
+
+# Development dependencies
+node_modules/
+
+# Build artifacts (except dist)
+*.tsbuildinfo
+
+# IDE files
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# Temporary files
+tmp/
+temp/
+
+# Documentation (except README and LICENSE)
+docs/
+
+# Examples (they're in src/examples)
+examples/
+
+# GitHub files
+.github/
+.gitignore 
