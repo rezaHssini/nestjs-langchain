@@ -214,103 +214,6 @@ export class SecurityMiddleware {
   }
 
   /**
-   * Validate authentication
-   */
-  validateAuthentication(context: any): {
-    authenticated: boolean;
-    user?: any;
-    error?: string;
-  } {
-    if (!this.config.authentication?.enabled) {
-      return { authenticated: true };
-    }
-
-    try {
-      const { type, config } = this.config.authentication;
-
-      switch (type) {
-        case 'jwt':
-          return this.validateJWT(context, config);
-        case 'api-key':
-          return this.validateApiKey(context, config);
-        case 'oauth':
-          return this.validateOAuth(context, config);
-        default:
-          return {
-            authenticated: false,
-            error: 'Unsupported authentication type',
-          };
-      }
-    } catch (error) {
-      this.logger.error('Authentication validation failed', error);
-      return {
-        authenticated: false,
-        error: 'Authentication validation failed',
-      };
-    }
-  }
-
-  /**
-   * Validate JWT token
-   */
-  private validateJWT(
-    context: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    config: any,
-  ): { authenticated: boolean; user?: any; error?: string } {
-    const token = context?.headers?.authorization?.replace('Bearer ', '');
-    if (!token) {
-      return { authenticated: false, error: 'No JWT token provided' };
-    }
-
-    try {
-      // In a real implementation, you would verify the JWT here
-      // const decoded = jwt.verify(token, config.secret);
-      // return { authenticated: true, user: decoded };
-
-      // Placeholder implementation
-      return { authenticated: true, user: { id: 'user-123', role: 'user' } };
-    } catch (error) {
-      return { authenticated: false, error: 'Invalid JWT token' };
-    }
-  }
-
-  /**
-   * Validate API key
-   */
-  private validateApiKey(
-    context: any,
-    config: any,
-  ): { authenticated: boolean; user?: any; error?: string } {
-    const apiKey =
-      context?.headers?.['x-api-key'] || context?.headers?.authorization;
-    if (!apiKey) {
-      return { authenticated: false, error: 'No API key provided' };
-    }
-
-    // In a real implementation, you would validate against stored API keys
-    const validKeys = config?.validKeys || [];
-    if (!validKeys.includes(apiKey)) {
-      return { authenticated: false, error: 'Invalid API key' };
-    }
-
-    return { authenticated: true, user: { id: 'api-user', role: 'api' } };
-  }
-
-  /**
-   * Validate OAuth
-   */
-  private validateOAuth(
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    context: any,
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    config: any,
-  ): { authenticated: boolean; user?: any; error?: string } {
-    // Placeholder implementation for OAuth validation
-    return { authenticated: true, user: { id: 'oauth-user', role: 'user' } };
-  }
-
-  /**
    * Get security statistics
    */
   getSecurityStats(): {
@@ -320,8 +223,8 @@ export class SecurityMiddleware {
   } {
     return {
       rateLimitEntries: this.rateLimitStore.size,
-      blockedRequests: 0, // Would track this in a real implementation
-      maliciousContentDetected: 0, // Would track this in a real implementation
+      blockedRequests: 0,
+      maliciousContentDetected: 0,
     };
   }
 }

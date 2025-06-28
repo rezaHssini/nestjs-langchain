@@ -14,7 +14,6 @@ A powerful NestJS library for building AI agents with a unified tool system that
 - **Error Handling**: Built-in error handling and fallback mechanisms
 - **Comprehensive Logging**: Configurable logging system with multiple levels and categories
 - **Security Middleware**: Input validation, sanitization, rate limiting, and authentication
-- **Performance Monitoring**: Built-in performance tracking and metrics
 - **Resilience Features**: Retry mechanisms, circuit breakers, and timeout handling
 - **Middleware System**: Before/after model call hooks for custom processing
 - **Multiple AI Providers**: Support for OpenAI, Anthropic, Google, Azure, and custom providers
@@ -518,37 +517,12 @@ The library includes comprehensive security features to protect your AI agents.
 export class AppModule {}
 ```
 
-### Authentication Configuration
-
-```typescript
-@Module({
-  imports: [
-    AgentModule.forRoot({
-      authentication: {
-        enabled: true,
-        type: 'jwt',
-        config: {
-          secret: process.env.JWT_SECRET,
-          issuer: 'your-app',
-        },
-      },
-      rateLimit: {
-        maxRequests: 50,
-        windowMs: 60,
-      },
-    }),
-  ],
-})
-export class AppModule {}
-```
-
 ### Security Features
 
 - **Rate Limiting**: Configurable rate limits per user/IP
 - **Input Validation**: Length limits and content validation
 - **Input Sanitization**: Automatic removal of malicious content
 - **Domain Whitelisting**: Control external API access
-- **Authentication**: JWT, API key, and OAuth support
 - **Malicious Content Detection**: SQL injection, XSS, command injection protection
 
 ## 🔄 Middleware System
@@ -942,14 +916,6 @@ export class AppModule {}
         maxInputLength: 10000,
         sanitizeInput: true,
         allowedDomains: ['api.openai.com', 'api.anthropic.com'],
-        authentication: {
-          enabled: true,
-          type: 'jwt',
-          config: {
-            secret: process.env.JWT_SECRET,
-            issuer: 'your-app',
-          },
-        },
       },
 
       // Agent Service Configuration
@@ -963,84 +929,6 @@ export class AppModule {}
 
       // Custom Providers
       providers: [MyCustomAgent],
-    }),
-  ],
-})
-export class AppModule {}
-```
-
-### Performance Configuration
-
-```typescript
-@Module({
-  imports: [
-    AgentModule.forRoot({
-      performance: {
-        enableCaching: true,
-        cacheTTL: 3600,
-        enableConnectionPooling: true,
-        poolSize: 10,
-        requestTimeout: 30000,
-        enableCompression: true,
-      },
-    }),
-  ],
-})
-export class AppModule {}
-```
-
-### Resilience Configuration
-
-```typescript
-@Module({
-  imports: [
-    AgentModule.forRoot({
-      resilience: {
-        enableRetry: true,
-        retry: {
-          maxAttempts: 3,
-          backoffStrategy: 'exponential',
-          backoffDelay: 1000,
-        },
-        enableCircuitBreaker: true,
-        circuitBreaker: {
-          failureThreshold: 5,
-          recoveryTimeout: 60000,
-          halfOpenState: true,
-        },
-        enableTimeout: true,
-        timeout: {
-          request: 30000,
-          tool: 10000,
-          agent: 60000,
-        },
-      },
-    }),
-  ],
-})
-export class AppModule {}
-```
-
-### Monitoring Configuration
-
-```typescript
-@Module({
-  imports: [
-    AgentModule.forRoot({
-      monitoring: {
-        metricsEnabled: true,
-        tracingEnabled: true,
-        alertingEnabled: true,
-        metricsEndpoint: {
-          enabled: true,
-          path: '/metrics',
-        },
-        healthCheck: {
-          enabled: true,
-          path: '/health',
-          timeout: 5000,
-        },
-      },
     }),
   ],
 })
@@ -1242,7 +1130,6 @@ The library uses several design patterns:
 6. **Maintainability**: Single codebase for tool handling
 7. **Security**: Built-in input validation and sanitization
 8. **Performance**: Optimized execution with caching and monitoring
-9. **Reliability**: Error handling and resilience features
 
 ## 📚 API Reference
 
@@ -1291,9 +1178,6 @@ interface AgentModuleConfig {
   aiProvider?: AIProviderConfig;
   logging?: LoggingConfig;
   security?: SecurityConfig;
-  performance?: PerformanceConfig;
-  resilience?: ResilienceConfig;
-  monitoring?: MonitoringConfig;
   agentService?: {
     defaultModel?: string;
     defaultTemperature?: number;
