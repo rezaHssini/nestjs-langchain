@@ -21,9 +21,9 @@ async function bootstrap() {
 
   // Swagger configuration
   const config = new DocumentBuilder()
-    .setTitle('NestJS AI Agent Library')
+    .setTitle('NestJS Agent Library')
     .setDescription(
-      "A powerful NestJS library for creating AI agents with decorators, similar to Microsoft's Semantic Kernel",
+      'A powerful NestJS library for creating intelligent agents with decorators and comprehensive tooling',
     )
     .setVersion('1.0')
     .build();

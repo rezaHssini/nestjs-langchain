@@ -1,5 +1,5 @@
 {
-  "name": "@nestjs/ai-agent",
+  "name": "nest-langchain",
   "version": "1.0.0",
   "description": "A powerful NestJS library for building AI agents with a unified tool system, security middleware, and enterprise-grade features",
   "keywords": [

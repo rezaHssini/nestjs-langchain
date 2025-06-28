@@ -11,18 +11,18 @@ import {
 import { Reflector } from '@nestjs/core';
 
 /**
- * Comprehensive AI Agent Example
- * Demonstrates all features: tools, middleware, logging, error handling
+ * Comprehensive Agent Example
+ * Demonstrates all features including tools, middleware, logging, and error handling
  */
 @Injectable()
 @Agent({
   name: 'comprehensive-ai-agent',
   description:
-    'A comprehensive AI agent demonstrating all features including tools, middleware, logging, and error handling',
+    'A comprehensive agent demonstrating all features including tools, middleware, logging, and error handling',
   model: 'gpt-3.5-turbo',
   temperature: 0.7,
   maxTokens: 1000,
-  systemPrompt: `You are a comprehensive AI assistant with access to various tools and capabilities.
+  systemPrompt: `You are a comprehensive intelligent assistant with access to various tools and capabilities.
 
   You can:
   - Perform mathematical calculations
@@ -190,16 +190,28 @@ export class ComprehensiveAIAgent extends BaseAgentProvider {
         };
       }
 
-      // Format and enhance the response
-      const formattedOutput = this.formatResponse(response.output);
+      // Add response formatting and styling
+      let formattedOutput = response.output;
 
-      // Add response metadata
+      // Add prefix
+      formattedOutput = `Assistant: ${formattedOutput}`;
+
+      // Ensure proper punctuation
+      if (
+        !formattedOutput.endsWith('.') &&
+        !formattedOutput.endsWith('!') &&
+        !formattedOutput.endsWith('?')
+      ) {
+        formattedOutput += '.';
+      }
+
+      // Add metadata
       const enhancedResponse: AgentResponse = {
         ...response,
         output: formattedOutput,
         metadata: {
           ...response.metadata,
-          postprocessed: true,
+          formatted: true,
           originalLength: response.output.length,
           formattedLength: formattedOutput.length,
           processingTime: new Date().toISOString(),
@@ -961,22 +973,5 @@ Text: "${text}"`;
     }
 
     return sanitized;
-  }
-
-  private formatResponse(output: string): string {
-    // Add a friendly prefix
-    let formatted = `🤖 AI Assistant: ${output}`;
-
-    // Ensure proper punctuation
-    if (
-      !formatted.endsWith('.') &&
-      !formatted.endsWith('!') &&
-      !formatted.endsWith('?') &&
-      !formatted.endsWith(':')
-    ) {
-      formatted += '.';
-    }
-
-    return formatted;
   }
 }

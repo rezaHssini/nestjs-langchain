@@ -20,10 +20,6 @@ import {
   TOOL_CREATION_STRATEGY_TOKEN,
 } from '../constants/tokens';
 
-/**
- * Refactored Agent Service using design patterns
- * Follows SOLID principles and implements multiple design patterns
- */
 @Injectable()
 export class AgentService {
   constructor(

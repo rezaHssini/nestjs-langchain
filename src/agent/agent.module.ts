@@ -83,7 +83,10 @@ export class AgentModule {
       // Strategies - Provide the interface with the concrete implementation
       {
         provide: TOOL_CREATION_STRATEGY_TOKEN,
-        useClass: DefaultToolCreationStrategy,
+        useFactory: (loggerService: AgentLoggerService) => {
+          return new DefaultToolCreationStrategy(loggerService);
+        },
+        inject: [AgentLoggerService],
       },
 
       // Repositories - Provide the interface with the concrete implementation
@@ -93,8 +96,14 @@ export class AgentModule {
       },
 
       // Observers
+      {
+        provide: AgentEventLogger,
+        useFactory: (loggerService: AgentLoggerService) => {
+          return new AgentEventLogger(loggerService);
+        },
+        inject: [AgentLoggerService],
+      },
       AgentEventSubject,
-      AgentEventLogger,
     ];
 
     // Add custom providers (these will be instantiated by NestJS)

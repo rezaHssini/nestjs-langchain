@@ -8,7 +8,7 @@
     "removeComments": false,
     "noEmit": false
   },
-  "include": ["src/agent/**/*"],
+  "include": ["src/**/*"],
   "exclude": [
     "node_modules",
     "test",
@@ -16,7 +16,6 @@
     "**/*spec.ts",
     "src/examples/**/*",
     "src/app.module.ts",
-    "src/main.ts",
-    "src/index.ts"
+    "src/main.ts"
   ]
 }

@@ -375,6 +375,205 @@ export class AppModule {}
 - **Authentication**: JWT, API key, and OAuth support
 - **Malicious Content Detection**: SQL injection, XSS, command injection protection
 
+## 🔄 Middleware System
+
+The library includes a powerful middleware system that allows you to hook into the agent execution process for custom preprocessing and post-processing.
+
+### Middleware Implementation
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { Agent } from './agent/decorators/agent.decorator';
+import { Tool } from './agent/decorators/tool.decorator';
+import { BaseAgentProvider } from './agent/abstracts/base-agent-provider.abstract';
+import { AgentService } from './agent/services/agent.service';
+import { AgentLoggerService } from './agent/services/agent-logger.service';
+import {
+  AgentContext,
+  AgentResponse,
+} from './agent/interfaces/agent.interface';
+import { Reflector } from '@nestjs/core';
+
+@Injectable()
+@Agent({
+  name: 'my-agent',
+  description: 'An agent with middleware',
+  model: 'gpt-3.5-turbo',
+  temperature: 0.7,
+  tools: ['echo'],
+})
+export class MyAgent extends BaseAgentProvider {
+  readonly agentName = 'my-agent';
+
+  constructor(
+    agentService: AgentService,
+    logger: AgentLoggerService,
+    reflector: Reflector,
+  ) {
+    super(agentService, logger, reflector);
+  }
+
+  // Before Model Call Middleware
+  public async beforeModelCall(
+    context: AgentContext,
+    metadata: any,
+  ): Promise<AgentContext> {
+    // Input validation and preprocessing
+    const sanitizedInput = context.input.trim().replace(/\s+/g, ' ');
+
+    return {
+      ...context,
+      input: sanitizedInput,
+      metadata: {
+        ...context.metadata,
+        preprocessed: true,
+        timestamp: new Date().toISOString(),
+      },
+    };
+  }
+
+  // After Model Call Middleware
+  public async afterModelCall(
+    context: AgentContext,
+    response: AgentResponse,
+    metadata: any,
+  ): Promise<AgentResponse> {
+    // Response formatting and enhancement
+    const formattedOutput = `Assistant: ${response.output}`;
+
+    return {
+      ...response,
+      output: formattedOutput,
+      metadata: {
+        ...response.metadata,
+        postprocessed: true,
+        processingTime: new Date().toISOString(),
+      },
+    };
+  }
+
+  @Tool({
+    name: 'echo',
+    description: 'Echo back the input',
+    parameters: {
+      message: {
+        type: 'string',
+        description: 'Message to echo',
+        required: true,
+      },
+    },
+    returnType: 'string',
+  })
+  async echo(message: string): Promise<string> {
+    return `Echo: ${message}`;
+  }
+}
+```
+
+### Input Validation Middleware
+
+```typescript
+public async beforeModelCall(
+  context: AgentContext,
+  metadata: any,
+): Promise<AgentContext> {
+  // Validate input
+  if (!context.input || context.input.trim().length === 0) {
+    throw new Error('Input cannot be empty');
+  }
+
+  // Check for inappropriate content
+  const inappropriateWords = ['spam', 'inappropriate', 'blocked'];
+  const hasInappropriateContent = inappropriateWords.some(word =>
+    context.input.toLowerCase().includes(word)
+  );
+
+  if (hasInappropriateContent) {
+    return {
+      ...context,
+      input: 'I apologize, but I cannot process that request.',
+      metadata: {
+        ...context.metadata,
+        validationFailed: true,
+        reason: 'inappropriate_content',
+      },
+    };
+  }
+
+  return context;
+}
+```
+
+### Response Formatting Middleware
+
+```typescript
+public async afterModelCall(
+  context: AgentContext,
+  response: AgentResponse,
+  metadata: any,
+): Promise<AgentResponse> {
+  // Add formatting and styling
+  let formattedOutput = response.output;
+
+  // Add emoji prefix
+  formattedOutput = `🤖 ${formattedOutput}`;
+
+  // Ensure proper punctuation
+  if (!formattedOutput.endsWith('.') && !formattedOutput.endsWith('!') && !formattedOutput.endsWith('?')) {
+    formattedOutput += '.';
+  }
+
+  // Add metadata
+  return {
+    ...response,
+    output: formattedOutput,
+    metadata: {
+      ...response.metadata,
+      formatted: true,
+      originalLength: response.output.length,
+      formattedLength: formattedOutput.length,
+    },
+  };
+}
+```
+
+## 🏗️ Module Configuration Methods
+
+The AgentModule provides several static methods for different use cases:
+
+### Basic Configuration
+
+```typescript
+@Module({
+  imports: [AgentModule.forRoot()],
+})
+export class AppModule {}
+```
+
+### Feature Module (for libraries)
+
+```typescript
+@Module({
+  imports: [AgentModule.forFeature()],
+})
+export class FeatureModule {}
+```
+
+### Production-Ready Configuration
+
+```typescript
+@Module({
+  imports: [AgentModule.forProduction()],
+})
+export class AppModule {}
+```
+
+The `forProduction()` method automatically configures:
+
+- Optimized logging (info level, JSON format)
+- Security settings (rate limiting, input validation)
+- Performance settings (validation enabled, concurrent execution limits)
+
 ## 📊 Logging Configuration
 
 The agent module includes a comprehensive logging system that can be configured through the module registration.
@@ -515,166 +714,197 @@ export class MyCustomService {
 }
 ```
 
-## 🔄 Agent Middleware System
+### Disable Logging Completely
 
-The agent module includes a powerful middleware system that allows you to hook into the AI agent execution process.
-
-### Middleware Implementation
+To disable all logging (useful for production environments):
 
 ```typescript
-import { Injectable } from '@nestjs/common';
-import { Agent } from './agent/decorators/agent.decorator';
-import { Tool } from './agent/decorators/tool.decorator';
-import { BaseAgentProvider } from './agent/abstracts/base-agent-provider.abstract';
-import { AgentService } from './agent/services/agent.service';
-import { AgentLoggerService } from './agent/services/agent-logger.service';
-import {
-  AgentContext,
-  AgentResponse,
-} from './agent/interfaces/agent.interface';
-import { Reflector } from '@nestjs/core';
-
-@Injectable()
-@Agent({
-  name: 'my-agent',
-  description: 'An AI agent with middleware',
-  model: 'gpt-3.5-turbo',
-  temperature: 0.7,
-  tools: ['echo'],
+@Module({
+  imports: [
+    AgentModule.forRoot({
+      logging: {
+        enabled: false, // This disables ALL logging
+      },
+    }),
+  ],
 })
-export class MyAgent extends BaseAgentProvider {
-  readonly agentName = 'my-agent';
-
-  constructor(
-    agentService: AgentService,
-    logger: AgentLoggerService,
-    reflector: Reflector,
-  ) {
-    super(agentService, logger, reflector);
-  }
-
-  // Before Model Call Middleware
-  public async beforeModelCall(
-    context: AgentContext,
-    metadata: any,
-  ): Promise<AgentContext> {
-    // Input validation and preprocessing
-    const sanitizedInput = context.input.trim().replace(/\s+/g, ' ');
-
-    return {
-      ...context,
-      input: sanitizedInput,
-      metadata: {
-        ...context.metadata,
-        preprocessed: true,
-        timestamp: new Date().toISOString(),
-      },
-    };
-  }
-
-  // After Model Call Middleware
-  public async afterModelCall(
-    context: AgentContext,
-    response: AgentResponse,
-    metadata: any,
-  ): Promise<AgentResponse> {
-    // Response formatting and enhancement
-    const formattedOutput = `🤖 AI: ${response.output}`;
-
-    return {
-      ...response,
-      output: formattedOutput,
-      metadata: {
-        ...response.metadata,
-        postprocessed: true,
-        processingTime: new Date().toISOString(),
-      },
-    };
-  }
-
-  @Tool({
-    name: 'echo',
-    description: 'Echo back the input',
-    parameters: {
-      message: {
-        type: 'string',
-        description: 'Message to echo',
-        required: true,
-      },
-    },
-    returnType: 'string',
-  })
-  async echo(message: string): Promise<string> {
-    return `Echo: ${message}`;
-  }
-}
+export class AppModule {}
 ```
 
-### Input Validation Middleware
+### Logging Configuration Fix
+
+**Important**: The logging system has been fixed to properly respect the `enabled: false` configuration. Previously, some hardcoded console calls were bypassing the logging configuration. Now all logging calls properly respect the configuration settings.
+
+**What was fixed:**
+
+- Removed hardcoded `console.log` calls from `DefaultToolCreationStrategy`
+- Updated `AgentEventLogger` to use `AgentLoggerService` instead of NestJS Logger
+- All logging now properly respects the `enabled`, `level`, and category settings
+
+**Available Logging Levels:**
+
+- `debug`: Most verbose, includes all debug information
+- `info`: Standard information logging
+- `warn`: Warning messages only
+- `error`: Error messages only
+
+**Available Logging Categories:**
+
+- `detailedExecution`: Agent execution details
+- `toolExecution`: Tool execution logs
+- `performance`: Performance metrics
+- `requestResponse`: Request/response logging
+
+## ⚙️ Advanced Configuration
+
+### Complete Configuration Example
 
 ```typescript
-public async beforeModelCall(
-  context: AgentContext,
-  metadata: any,
-): Promise<AgentContext> {
-  // Validate input
-  if (!context.input || context.input.trim().length === 0) {
-    throw new Error('Input cannot be empty');
-  }
-
-  // Check for inappropriate content
-  const inappropriateWords = ['spam', 'inappropriate', 'blocked'];
-  const hasInappropriateContent = inappropriateWords.some(word =>
-    context.input.toLowerCase().includes(word)
-  );
-
-  if (hasInappropriateContent) {
-    return {
-      ...context,
-      input: 'I apologize, but I cannot process that request.',
-      metadata: {
-        ...context.metadata,
-        validationFailed: true,
-        reason: 'inappropriate_content',
+@Module({
+  imports: [
+    AgentModule.forRoot({
+      // AI Provider Configuration
+      aiProvider: {
+        type: 'openai',
+        apiKey: process.env.OPENAI_API_KEY,
+        baseURL: 'https://api.openai.com/v1',
+        timeout: 30000,
+        maxRetries: 3,
+        config: {
+          organization: process.env.OPENAI_ORG_ID,
+        },
       },
-    };
-  }
 
-  return context;
-}
+      // Logging Configuration
+      logging: {
+        enabled: true,
+        level: 'debug',
+        detailedExecution: true,
+        toolExecution: true,
+        performance: true,
+        requestResponse: true,
+        format: 'json',
+        file: {
+          enabled: true,
+          path: './logs/agent.log',
+          maxSize: '10m',
+          maxFiles: 5,
+        },
+      },
+
+      // Security Configuration
+      security: {
+        rateLimit: {
+          maxRequests: 100,
+          windowMs: 60,
+          keyGenerator: (req) => req.ip,
+        },
+        maxInputLength: 10000,
+        sanitizeInput: true,
+        allowedDomains: ['api.openai.com', 'api.anthropic.com'],
+        authentication: {
+          enabled: true,
+          type: 'jwt',
+          config: {
+            secret: process.env.JWT_SECRET,
+            issuer: 'your-app',
+          },
+        },
+      },
+
+      // Agent Service Configuration
+      agentService: {
+        defaultModel: 'gpt-4',
+        defaultTemperature: 0.7,
+        defaultMaxTokens: 2000,
+        enableValidation: true,
+        maxConcurrentExecutions: 10,
+      },
+
+      // Custom Providers
+      providers: [MyCustomAgent],
+    }),
+  ],
+})
+export class AppModule {}
 ```
 
-### Response Formatting Middleware
+### Performance Configuration
 
 ```typescript
-public async afterModelCall(
-  context: AgentContext,
-  response: AgentResponse,
-  metadata: any,
-): Promise<AgentResponse> {
-  // Add formatting and styling
-  let formattedOutput = response.output;
+@Module({
+  imports: [
+    AgentModule.forRoot({
+      performance: {
+        enableCaching: true,
+        cacheTTL: 3600,
+        enableConnectionPooling: true,
+        poolSize: 10,
+        requestTimeout: 30000,
+        enableCompression: true,
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
 
-  // Add emoji prefix
-  formattedOutput = `🤖 ${formattedOutput}`;
+### Resilience Configuration
 
-  // Ensure proper punctuation
-  if (!formattedOutput.endsWith('.') && !formattedOutput.endsWith('!') && !formattedOutput.endsWith('?')) {
-    formattedOutput += '.';
-  }
+```typescript
+@Module({
+  imports: [
+    AgentModule.forRoot({
+      resilience: {
+        enableRetry: true,
+        retry: {
+          maxAttempts: 3,
+          backoffStrategy: 'exponential',
+          backoffDelay: 1000,
+        },
+        enableCircuitBreaker: true,
+        circuitBreaker: {
+          failureThreshold: 5,
+          recoveryTimeout: 60000,
+          halfOpenState: true,
+        },
+        enableTimeout: true,
+        timeout: {
+          request: 30000,
+          tool: 10000,
+          agent: 60000,
+        },
+      },
+    }),
+  ],
+})
+export class AppModule {}
+```
 
-  // Add metadata
-  return {
-    ...response,
-    output: formattedOutput,
-    metadata: {
-      ...response.metadata,
-      formatted: true,
-      originalLength: response.output.length,
-      formattedLength: formattedOutput.length,
-    },
-  };
-}
+### Monitoring Configuration
+
+```typescript
+@Module({
+  imports: [
+    AgentModule.forRoot({
+      monitoring: {
+        metricsEnabled: true,
+        tracingEnabled: true,
+        alertingEnabled: true,
+        metricsEndpoint: {
+          enabled: true,
+          path: '/metrics',
+        },
+        healthCheck: {
+          enabled: true,
+          path: '/health',
+          timeout: 5000,
+        },
+      },
+    }),
+  ],
+})
+export class AppModule {}
 ```
 
 ## 🛠️ Tool Decorator Reference
@@ -922,6 +1152,9 @@ interface AgentModuleConfig {
   aiProvider?: AIProviderConfig;
   logging?: LoggingConfig;
   security?: SecurityConfig;
+  performance?: PerformanceConfig;
+  resilience?: ResilienceConfig;
+  monitoring?: MonitoringConfig;
   agentService?: {
     defaultModel?: string;
     defaultTemperature?: number;

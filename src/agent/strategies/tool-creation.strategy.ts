@@ -1,6 +1,7 @@
 import { DynamicTool } from '@langchain/core/tools';
 import { Injectable } from '@nestjs/common';
 import { ToolMetadata } from '../decorators/tool.decorator';
+import { AgentLoggerService } from '../services/agent-logger.service';
 
 /**
  * Strategy interface for tool creation
@@ -17,6 +18,8 @@ export interface IToolCreationStrategy {
  */
 @Injectable()
 export class DefaultToolCreationStrategy implements IToolCreationStrategy {
+  constructor(private readonly logger: AgentLoggerService) {}
+
   createToolsFromMetadata(
     tools: Map<string, ToolMetadata & { instance: any }>,
   ): DynamicTool[] {
@@ -29,14 +32,27 @@ export class DefaultToolCreationStrategy implements IToolCreationStrategy {
           description: tool.description,
           func: async (input: string) => {
             try {
-              console.log(`🔧 Tool ${tool.name} called with input:`, input);
+              this.logger.debug(
+                `Tool ${tool.name} called with input: ${input}`,
+                'ToolExecution',
+              );
               const parsedInput = this.parseInput(input, tool);
-              console.log(`🔧 Tool ${tool.name} parsed input:`, parsedInput);
+              this.logger.debug(
+                `Tool ${tool.name} parsed input: ${JSON.stringify(parsedInput)}`,
+                'ToolExecution',
+              );
               const result = await tool.instance[tool.methodName](parsedInput);
-              console.log(`🔧 Tool ${tool.name} result:`, result);
+              this.logger.debug(
+                `Tool ${tool.name} result: ${JSON.stringify(result)}`,
+                'ToolExecution',
+              );
               return String(result);
             } catch (error) {
-              console.error(`❌ Tool ${tool.name} error:`, error);
+              this.logger.error(
+                `Tool ${tool.name} error: ${error.message}`,
+                error,
+                'ToolExecution',
+              );
               return `Error: ${error.message}`;
             }
           },
@@ -82,9 +98,9 @@ export class DefaultToolCreationStrategy implements IToolCreationStrategy {
         }
 
         if (hasExtractedParams) {
-          console.log(
-            `🔧 Extracted parameters for ${tool.name}:`,
-            extractedParams,
+          this.logger.debug(
+            `Extracted parameters for ${tool.name}: ${JSON.stringify(extractedParams)}`,
+            'ToolExecution',
           );
           return extractedParams;
         }
@@ -96,7 +112,10 @@ export class DefaultToolCreationStrategy implements IToolCreationStrategy {
         Object.values(jsonInput).find((val) => typeof val === 'string') ||
         input;
 
-      console.log(`🔧 Using fallback input for ${tool.name}:`, fallbackInput);
+      this.logger.debug(
+        `Using fallback input for ${tool.name}: ${fallbackInput}`,
+        'ToolExecution',
+      );
       return fallbackInput;
     } catch (parseError) {
       // If JSON parsing fails, try to extract parameters from string
@@ -123,15 +142,18 @@ export class DefaultToolCreationStrategy implements IToolCreationStrategy {
         }
 
         if (hasExtractedParams) {
-          console.log(
-            `🔧 Extracted parameters from string for ${tool.name}:`,
-            extractedParams,
+          this.logger.debug(
+            `Extracted parameters from string for ${tool.name}: ${JSON.stringify(extractedParams)}`,
+            'ToolExecution',
           );
           return extractedParams;
         }
       }
 
-      console.log(`🔧 Using raw input for ${tool.name}:`, input);
+      this.logger.debug(
+        `Using raw input for ${tool.name}: ${input}`,
+        'ToolExecution',
+      );
       return input;
     }
   }

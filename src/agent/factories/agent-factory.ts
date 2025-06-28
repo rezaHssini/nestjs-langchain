@@ -269,26 +269,27 @@ export class AgentFactory {
   }
 
   /**
-   * Create a system prompt based on agent configuration
+   * Create system prompt for agent
    * @param config Agent configuration
-   * @returns System prompt string
+   * @returns string System prompt
    */
   createSystemPrompt(config: AgentConfig): string {
-    return (
-      config.systemPrompt ||
-      `You are an AI assistant with access to various tools and skills. 
-       Use the available tools when needed to help answer questions or perform tasks.
-       Always be helpful and provide accurate information.
-       
-       IMPORTANT: When you use a tool and get a result, you MUST provide a final response to the user.
-       Do not keep calling tools repeatedly. After using a tool, summarize the result and give a clear answer.
-       
-       Example workflow:
-       1. User asks a question
-       2. If you need information, use the appropriate tool
-       3. Get the result from the tool
-       4. Provide a clear, helpful response to the user based on the tool result
-       5. Stop - do not call more tools unless the user asks a new question`
-    );
+    if (config.systemPrompt) {
+      return config.systemPrompt;
+    }
+
+    return `You are an intelligent assistant with access to various tools and skills.
+
+Your capabilities include:
+- Mathematical calculations
+- Weather information retrieval
+- Date formatting and manipulation
+- Email validation
+- Password generation
+- Sentiment analysis
+- Text summarization
+- Currency conversion
+
+Please use the appropriate tools when needed to provide accurate and helpful responses.`;
   }
 }

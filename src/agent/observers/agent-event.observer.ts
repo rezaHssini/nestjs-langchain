@@ -1,5 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { AgentContext, AgentResponse } from '../interfaces/agent.interface';
+import { AgentLoggerService } from '../services/agent-logger.service';
 
 /**
  * Agent event types
@@ -34,23 +35,28 @@ export interface IAgentEventObserver {
  */
 @Injectable()
 export class AgentEventLogger implements IAgentEventObserver {
-  private readonly logger = new Logger(AgentEventLogger.name);
+  constructor(private readonly logger: AgentLoggerService) {}
 
   onAgentEvent(event: IAgentEvent): void {
     switch (event.type) {
       case AgentEventType.AGENT_REGISTERED:
-        this.logger.log(`Agent registered: ${event.agentName}`);
+        this.logger.info(`Agent registered: ${event.agentName}`, 'AgentEvent');
         break;
       case AgentEventType.AGENT_EXECUTED:
-        this.logger.log(`Agent executed: ${event.agentName}`);
+        this.logger.info(`Agent executed: ${event.agentName}`, 'AgentEvent');
         break;
       case AgentEventType.AGENT_ERROR:
         this.logger.error(
           `Agent error: ${event.agentName} - ${event.data?.error}`,
+          null,
+          'AgentEvent',
         );
         break;
       case AgentEventType.TOOL_REGISTERED:
-        this.logger.log(`Tool registered: ${event.data?.toolName}`);
+        this.logger.info(
+          `Tool registered: ${event.data?.toolName}`,
+          'AgentEvent',
+        );
         break;
     }
   }

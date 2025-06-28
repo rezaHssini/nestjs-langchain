@@ -145,36 +145,32 @@ export abstract class BaseAgentProvider implements IAgentProvider {
   }
 
   /**
-   * Optional middleware that runs before the AI model call
-   * Override this method to implement custom preprocessing logic
-   * @param context The original context
-   * @param metadata Agent metadata
-   * @returns Promise<AgentContext> Modified context or the original context
+   * Optional middleware that runs before the model call
+   * @param context The agent context
+   * @param metadata The agent metadata
+   * @returns Promise<AgentContext> The modified context
    */
-  public async beforeModelCall?(
+  public async beforeModelCall(
     context: AgentContext,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     metadata: any,
   ): Promise<AgentContext> {
-    // Default implementation returns the original context unchanged
     return context;
   }
 
   /**
-   * Optional middleware that runs after the AI model call
-   * Override this method to implement custom post-processing logic
-   * @param context The original context
-   * @param response The AI model response
-   * @param metadata Agent metadata
-   * @returns Promise<AgentResponse> Modified response or the original response
+   * Optional middleware that runs after the model call
+   * @param context The agent context
+   * @param response The model response
+   * @param metadata The agent metadata
+   * @returns Promise<AgentResponse> The modified response
    */
-  public async afterModelCall?(
+  public async afterModelCall(
     context: AgentContext,
     response: AgentResponse,
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
     metadata: any,
   ): Promise<AgentResponse> {
-    // Default implementation returns the original response unchanged
     return response;
   }
 }
