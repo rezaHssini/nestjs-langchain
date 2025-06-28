@@ -79,7 +79,6 @@ import { Reflector } from '@nestjs/core';
   name: 'my-first-agent',
   description: 'A simple AI assistant',
   model: 'gpt-3.5-turbo',
-  tools: ['greet'],
 })
 export class MyFirstAgent extends BaseAgentProvider {
   readonly agentName = 'my-first-agent';
@@ -210,7 +209,6 @@ import { Reflector } from '@nestjs/core';
   temperature: 0.7,
   maxTokens: 1000,
   systemPrompt: 'You are a helpful AI assistant.',
-  tools: ['get-weather', 'calculate'],
 })
 export class MyAIAgent extends BaseAgentProvider {
   readonly agentName = 'my-ai-agent';
@@ -577,7 +575,6 @@ import { Reflector } from '@nestjs/core';
   description: 'An agent with middleware',
   model: 'gpt-3.5-turbo',
   temperature: 0.7,
-  tools: ['echo'],
 })
 export class MyAgent extends BaseAgentProvider {
   readonly agentName = 'my-agent';
@@ -1260,7 +1257,6 @@ The library uses several design patterns:
   maxTokens?: number;       // Maximum tokens
   systemPrompt?: string;    // System prompt
   memory?: boolean;         // Enable memory
-  tools?: string[];         // Tool names
 })
 ```
 
