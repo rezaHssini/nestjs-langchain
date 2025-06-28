@@ -31,7 +31,6 @@ import {
 @Module({})
 export class AgentModule {
   /**
-   * Create a configured AgentModule with design patterns and production features
    * @param config Configuration for the agent module
    * @returns DynamicModule The configured module
    */
