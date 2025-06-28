@@ -1,4 +1,4 @@
-# NestJS AI Agent Library with Unified Tool System
+# NestJS LangChain - AI Agent Library
 
 A powerful NestJS library for building AI agents with a unified tool system that makes it simple and intuitive to create both simple and complex AI tools. Built with enterprise-grade features including security, monitoring, performance optimization, and comprehensive logging.
 
@@ -20,15 +20,168 @@ A powerful NestJS library for building AI agents with a unified tool system that
 - **Multiple AI Providers**: Support for OpenAI, Anthropic, Google, Azure, and custom providers
 - **Enterprise Ready**: Production-grade features for scalability and reliability
 
-## 📦 Installation
+## 🚀 Quick Installation & Setup
+
+### Step 1: Install the package
 
 ```bash
-npm install @nestjs/core @nestjs/common langchain @langchain/core @langchain/openai
+npm install nest-langchain
 ```
 
-For additional providers:
+### Step 2: Install peer dependencies
 
 ```bash
+npm install @nestjs/common @nestjs/core @langchain/core langchain reflect-metadata rxjs
+```
+
+### Step 3: Install AI provider (choose one)
+
+```bash
+# For OpenAI (recommended for beginners)
+npm install @langchain/openai
+
+# For Anthropic Claude
+npm install @langchain/anthropic
+
+# For Google Gemini
+npm install @langchain/google-genai
+```
+
+### Step 4: Set up environment variables
+
+Create a `.env` file in your project root:
+
+```env
+# OpenAI (default)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Or for other providers
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+GOOGLE_API_KEY=your_google_api_key_here
+```
+
+### Step 5: Create your first AI agent
+
+```typescript
+// my-agent.ts
+import { Injectable } from '@nestjs/common';
+import {
+  Agent,
+  Tool,
+  BaseAgentProvider,
+  AgentService,
+  AgentLoggerService,
+} from 'nest-langchain';
+import { Reflector } from '@nestjs/core';
+
+@Injectable()
+@Agent({
+  name: 'my-first-agent',
+  description: 'A simple AI assistant',
+  model: 'gpt-3.5-turbo',
+  tools: ['greet'],
+})
+export class MyFirstAgent extends BaseAgentProvider {
+  readonly agentName = 'my-first-agent';
+
+  constructor(
+    agentService: AgentService,
+    logger: AgentLoggerService,
+    reflector: Reflector,
+  ) {
+    super(agentService, logger, reflector);
+  }
+
+  @Tool({
+    name: 'greet',
+    description: 'Greet someone by name',
+    parameters: {
+      name: {
+        type: 'string',
+        description: 'Name to greet',
+        required: true,
+      },
+    },
+    returnType: 'string',
+  })
+  async greet(name: string): Promise<string> {
+    return `Hello, ${name}! Nice to meet you!`;
+  }
+}
+```
+
+### Step 6: Create a controller
+
+```typescript
+// my-agent.controller.ts
+import { Controller, Post, Body } from '@nestjs/common';
+import { MyFirstAgent } from './my-agent';
+import { AgentContext } from 'nest-langchain';
+
+@Controller('agent')
+export class MyAgentController {
+  constructor(private readonly agent: MyFirstAgent) {}
+
+  @Post('execute')
+  async execute(@Body() request: { input: string }) {
+    const context: AgentContext = {
+      input: request.input,
+      history: [],
+    };
+
+    return await this.agent.execute(context);
+  }
+}
+```
+
+### Step 7: Configure your module
+
+```typescript
+// app.module.ts
+import { Module } from '@nestjs/common';
+import { AgentModule } from 'nest-langchain';
+import { MyFirstAgent, MyAgentController } from './my-agent';
+
+@Module({
+  imports: [AgentModule.forRoot()],
+  providers: [MyFirstAgent],
+  controllers: [MyAgentController],
+})
+export class AppModule {}
+```
+
+### Step 8: Test your agent
+
+Start your application and send a POST request to `/agent/execute`:
+
+```bash
+curl -X POST http://localhost:3000/agent/execute \
+  -H "Content-Type: application/json" \
+  -d '{"input": "Can you greet John?"}'
+```
+
+**That's it!** Your AI agent is now ready to use. 🎉
+
+## 📦 Installation
+
+### 1. Install the main package
+
+```bash
+npm install nest-langchain
+```
+
+### 2. Install required peer dependencies
+
+```bash
+npm install @nestjs/common @nestjs/core @langchain/core langchain reflect-metadata rxjs
+```
+
+### 3. Install AI provider packages (optional, based on your needs)
+
+```bash
+# For OpenAI (included by default)
+npm install @langchain/openai
+
 # For Anthropic
 npm install @langchain/anthropic
 
@@ -42,11 +195,11 @@ npm install @langchain/google-genai
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { Agent } from './agent/decorators/agent.decorator';
-import { Tool } from './agent/decorators/tool.decorator';
-import { BaseAgentProvider } from './agent/abstracts/base-agent-provider.abstract';
-import { AgentService } from './agent/services/agent.service';
-import { AgentLoggerService } from './agent/services/agent-logger.service';
+import { Agent } from 'nest-langchain';
+import { Tool } from 'nest-langchain';
+import { BaseAgentProvider } from 'nest-langchain';
+import { AgentService } from 'nest-langchain';
+import { AgentLoggerService } from 'nest-langchain';
 import { Reflector } from '@nestjs/core';
 
 @Injectable()
@@ -140,7 +293,7 @@ export class MyAIAgent extends BaseAgentProvider {
 ```typescript
 import { Controller, Post, Body } from '@nestjs/common';
 import { MyAIAgent } from './my-ai-agent';
-import { AgentContext } from './agent/interfaces/agent.interface';
+import { AgentContext } from 'nest-langchain';
 
 @Controller('ai-agent')
 export class MyAIAgentController {
@@ -162,7 +315,7 @@ export class MyAIAgentController {
 
 ```typescript
 import { Module } from '@nestjs/common';
-import { AgentModule } from './agent/agent.module';
+import { AgentModule } from 'nest-langchain';
 import { MyAIAgent, MyAIAgentController } from './my-ai-agent';
 
 @Module({
@@ -171,6 +324,35 @@ import { MyAIAgent, MyAIAgentController } from './my-ai-agent';
   controllers: [MyAIAgentController],
 })
 export class AppModule {}
+```
+
+### 4. Set up environment variables
+
+Create a `.env` file in your project root:
+
+```env
+# OpenAI (default)
+OPENAI_API_KEY=your_openai_api_key_here
+
+# Or for other providers
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+GOOGLE_API_KEY=your_google_api_key_here
+AZURE_OPENAI_API_KEY=your_azure_api_key_here
+```
+
+### 5. Run your application
+
+```bash
+npm run start:dev
+```
+
+Your AI agent is now ready! You can test it by sending a POST request to `/ai-agent/execute` with a JSON body like:
+
+```json
+{
+  "input": "What's the weather like in New York?",
+  "history": []
+}
 ```
 
 ## 🤖 AI Provider Configuration
@@ -324,16 +506,14 @@ The library includes comprehensive security features to protect your AI agents.
 @Module({
   imports: [
     AgentModule.forRoot({
-      security: {
-        rateLimit: {
-          maxRequests: 100,
-          windowMs: 60, // 1 minute
-          keyGenerator: (req) => req.ip, // Rate limit by IP
-        },
-        maxInputLength: 10000,
-        sanitizeInput: true,
-        allowedDomains: ['api.openai.com', 'api.anthropic.com'],
+      rateLimit: {
+        maxRequests: 100,
+        windowMs: 60, // 1 minute
+        keyGenerator: (req) => req.ip, // Rate limit by IP
       },
+      maxInputLength: 10000,
+      sanitizeInput: true,
+      allowedDomains: ['api.openai.com', 'api.anthropic.com'],
     }),
   ],
 })
@@ -346,19 +526,17 @@ export class AppModule {}
 @Module({
   imports: [
     AgentModule.forRoot({
-      security: {
-        authentication: {
-          enabled: true,
-          type: 'jwt',
-          config: {
-            secret: process.env.JWT_SECRET,
-            issuer: 'your-app',
-          },
+      authentication: {
+        enabled: true,
+        type: 'jwt',
+        config: {
+          secret: process.env.JWT_SECRET,
+          issuer: 'your-app',
         },
-        rateLimit: {
-          maxRequests: 50,
-          windowMs: 60,
-        },
+      },
+      rateLimit: {
+        maxRequests: 50,
+        windowMs: 60,
       },
     }),
   ],
@@ -383,15 +561,14 @@ The library includes a powerful middleware system that allows you to hook into t
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { Agent } from './agent/decorators/agent.decorator';
-import { Tool } from './agent/decorators/tool.decorator';
-import { BaseAgentProvider } from './agent/abstracts/base-agent-provider.abstract';
-import { AgentService } from './agent/services/agent.service';
-import { AgentLoggerService } from './agent/services/agent-logger.service';
 import {
-  AgentContext,
-  AgentResponse,
-} from './agent/interfaces/agent.interface';
+  Agent,
+  Tool,
+  BaseAgentProvider,
+  AgentService,
+  AgentLoggerService,
+} from 'nest-langchain';
+import { AgentContext, AgentResponse } from 'nest-langchain';
 import { Reflector } from '@nestjs/core';
 
 @Injectable()
@@ -584,12 +761,10 @@ The agent module includes a comprehensive logging system that can be configured 
 @Module({
   imports: [
     AgentModule.forRoot({
-      logging: {
-        enabled: true,
-        level: 'info',
-        toolExecution: true,
-        requestResponse: true,
-      },
+      enabled: true,
+      level: 'info',
+      toolExecution: true,
+      requestResponse: true,
     }),
   ],
 })
@@ -602,15 +777,13 @@ export class AppModule {}
 @Module({
   imports: [
     AgentModule.forRoot({
-      logging: {
-        enabled: true,
-        level: 'debug',
-        detailedExecution: true,
-        toolExecution: true,
-        performance: true,
-        requestResponse: true,
-        format: 'json',
-      },
+      enabled: true,
+      level: 'debug',
+      detailedExecution: true,
+      toolExecution: true,
+      performance: true,
+      requestResponse: true,
+      format: 'json',
     }),
   ],
 })
@@ -623,18 +796,16 @@ export class AppModule {}
 @Module({
   imports: [
     AgentModule.forRoot({
-      logging: {
+      enabled: true,
+      level: 'warn',
+      toolExecution: false,
+      performance: true,
+      requestResponse: false,
+      file: {
         enabled: true,
-        level: 'warn',
-        toolExecution: false,
-        performance: true,
-        requestResponse: false,
-        file: {
-          enabled: true,
-          path: './logs/agent.log',
-          maxSize: '10m',
-          maxFiles: 5,
-        },
+        path: './logs/agent.log',
+        maxSize: '10m',
+        maxFiles: 5,
       },
     }),
   ],
@@ -648,19 +819,17 @@ export class AppModule {}
 @Module({
   imports: [
     AgentModule.forRoot({
-      logging: {
-        enabled: true,
-        level: 'info',
-        customLogger: {
-          debug: (message: string, context?: string) =>
-            console.log(`[DEBUG] ${context}: ${message}`),
-          log: (message: string, context?: string) =>
-            console.log(`[INFO] ${context}: ${message}`),
-          warn: (message: string, context?: string) =>
-            console.warn(`[WARN] ${context}: ${message}`),
-          error: (message: string, error?: any, context?: string) =>
-            console.error(`[ERROR] ${context}: ${message}`, error),
-        },
+      enabled: true,
+      level: 'info',
+      customLogger: {
+        debug: (message: string, context?: string) =>
+          console.log(`[DEBUG] ${context}: ${message}`),
+        log: (message: string, context?: string) =>
+          console.log(`[INFO] ${context}: ${message}`),
+        warn: (message: string, context?: string) =>
+          console.warn(`[WARN] ${context}: ${message}`),
+        error: (message: string, error?: any, context?: string) =>
+          console.error(`[ERROR] ${context}: ${message}`, error),
       },
     }),
   ],
@@ -672,7 +841,7 @@ export class AppModule {}
 
 ```typescript
 import { Injectable } from '@nestjs/common';
-import { AgentLoggerService } from './agent';
+import { AgentLoggerService } from 'nest-langchain';
 
 @Injectable()
 export class MyCustomService {
@@ -722,38 +891,12 @@ To disable all logging (useful for production environments):
 @Module({
   imports: [
     AgentModule.forRoot({
-      logging: {
-        enabled: false, // This disables ALL logging
-      },
+      enabled: false, // This disables ALL logging
     }),
   ],
 })
 export class AppModule {}
 ```
-
-### Logging Configuration Fix
-
-**Important**: The logging system has been fixed to properly respect the `enabled: false` configuration. Previously, some hardcoded console calls were bypassing the logging configuration. Now all logging calls properly respect the configuration settings.
-
-**What was fixed:**
-
-- Removed hardcoded `console.log` calls from `DefaultToolCreationStrategy`
-- Updated `AgentEventLogger` to use `AgentLoggerService` instead of NestJS Logger
-- All logging now properly respects the `enabled`, `level`, and category settings
-
-**Available Logging Levels:**
-
-- `debug`: Most verbose, includes all debug information
-- `info`: Standard information logging
-- `warn`: Warning messages only
-- `error`: Error messages only
-
-**Available Logging Categories:**
-
-- `detailedExecution`: Agent execution details
-- `toolExecution`: Tool execution logs
-- `performance`: Performance metrics
-- `requestResponse`: Request/response logging
 
 ## ⚙️ Advanced Configuration
 
