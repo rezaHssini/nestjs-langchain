@@ -720,7 +720,6 @@ The `forProduction()` method automatically configures:
 
 - Optimized logging (info level, JSON format)
 - Security settings (rate limiting, input validation)
-- Performance settings (validation enabled, concurrent execution limits)
 
 ## 📊 Logging Configuration
 
